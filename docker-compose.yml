@@ -1,0 +1,42 @@
+version: '2'
+
+services:
+  db:
+    image: rethinkdb@sha256:0f6941e48842cba87e3eb086913d8941bf4cfcbb16ea2fee6643ec205f55df5f
+    ports:
+      - 8080:8080
+      - 28015:28015
+
+  api:
+    image: rabrams/trackit:api
+    build:
+      context: api
+    ports:
+      - 5000:5000
+
+  slackbot:
+    image: rabrams/trackit:slackbot
+    build:
+      context: slackbot
+    environment:
+      SLACK_TOKEN: "${TRACKIT_SLACK_TOKEN}"
+      BOTMASTER: "${TRACKIT_BOTMASTER}"
+      USERS: "${TRACKIT_USERS}"
+      CHANNEL: "${TRACKIT_CHANNEL}"
+      PUBLIC_ENDPOINT: "${TRACKIT_PUBLIC_ENDPOINT}"
+      USER_SPEC: rabrams/userset/trackit
+
+  proxy:
+    image: rabrams/trackit:proxy
+    build:
+      context: proxy
+    ports:
+      - 9000:80
+
+  tester:
+    image: rabrams/trackit:tester
+    build:
+      dockerfile: tester/Dockerfile
+      context: .
+    volumes:
+      - $PWD:/trackit
